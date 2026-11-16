@@ -56,7 +56,7 @@ Os cadastros e a criação de agendamento retornam `201 Created` e validam os ca
 
 ## MySQL local com Docker
 
-O `compose.yaml` inicia o MySQL 8.4 com banco, usuário de aplicação, volume persistente e verificação de saúde. Na raiz do projeto, copie o arquivo de exemplo e inicie o banco:
+O `compose.yaml` inicia o MySQL 8.4 na porta `3307` do Windows (porta `3306` dentro do container), com banco, usuário de aplicação, volume persistente e verificação de saúde. Usar `3307` no host evita conflito com um MySQL local que já esteja usando `3306`. Na raiz do projeto, copie o arquivo de exemplo e inicie o banco:
 
 ```powershell
 Copy-Item .env.example .env
