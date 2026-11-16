@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Availability, Barber, ServiceOffering } from './api.models';
+import { Appointment, Availability, Barber, CreateAppointmentRequest, ServiceOffering } from './api.models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -36,5 +36,13 @@ export class ApiService {
   availability(barberId: string, serviceId: string, date: string): Observable<Availability> {
     const params = new HttpParams().set('date', date).set('serviceId', serviceId);
     return this.http.get<Availability>(`${this.apiUrl}/barbers/${barberId}/availability`, { params });
+  }
+
+  createAppointment(request: CreateAppointmentRequest): Observable<Appointment> {
+    return this.http.post<Appointment>(`${this.apiUrl}/appointments`, request);
+  }
+
+  cancelAppointment(appointmentId: string): Observable<Appointment> {
+    return this.http.patch<Appointment>(`${this.apiUrl}/appointments/${appointmentId}/cancel`, {});
   }
 }

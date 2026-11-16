@@ -70,11 +70,31 @@
             } @else if (!barbers.length || !services.length) {
               <div class="empty-state"><span class="empty-icon">＋</span><strong>Comece pelos cadastros</strong><span>Adicione um barbeiro e um serviço para consultar a agenda.</span><a href="#cadastros">Ir para cadastros <b>→</b></a></div>
             } @else if (availability?.availableSlots?.length) {
-              <div class="slot-list">@for (slot of availability?.availableSlots; track slot) { <span class="slot-chip">{{ slot.slice(0, 5) }}</span> }</div>
+              <div class="slot-list">@for (slot of availability?.availableSlots; track slot) { <button class="slot-chip" type="button" [class.selected]="selectedSlot === slot" [attr.aria-pressed]="selectedSlot === slot" (click)="selectSlot(slot)">{{ slot.slice(0, 5) }}</button> }</div>
             } @else {
               <div class="empty-state compact"><span class="empty-icon">◷</span><strong>Nenhum horário disponível</strong><span>Confira o expediente do barbeiro. Horários anteriores e já reservados são ocultados.</span><a href="#expediente">Configurar expediente <b>→</b></a></div>
             }
           </div>
+          @if (selectedSlot) {
+            <form class="booking-form" (ngSubmit)="bookSelectedSlot()">
+              <div class="booking-form-heading"><div><span class="panel-kicker">CONFIRMAÇÃO</span><h4>Reservar às {{ selectedSlot.slice(0, 5) }}</h4></div><span class="booking-duration">{{ availability?.durationMinutes }} min</span></div>
+              <label for="customerName">NOME DO CLIENTE</label>
+              <input id="customerName" name="customerName" [(ngModel)]="customerName" placeholder="Ex.: Ana Souza" maxlength="120" autocomplete="name" required>
+              <label for="customerPhone">TELEFONE</label>
+              <input id="customerPhone" name="customerPhone" [(ngModel)]="customerPhone" placeholder="Ex.: (11) 99999-9999" maxlength="30" autocomplete="tel" type="tel" required>
+              <button class="button button-dark full-width" type="submit" [disabled]="saving || !customerName.trim() || !customerPhone.trim()">{{ saving ? 'Confirmando...' : 'Confirmar agendamento' }} <span>→</span></button>
+            </form>
+          }
+          @if (appointment) {
+            <section class="appointment-summary" aria-live="polite">
+              <div><span class="panel-kicker">RESERVA DESTA SESSÃO</span><strong>{{ appointment.status === 'SCHEDULED' ? 'Agendamento confirmado' : 'Agendamento cancelado' }}</strong></div>
+              <p>{{ appointment.customerName }} · {{ appointment.customerPhone }}</p>
+              <p>{{ appointment.startsAt | date:'dd/MM/yyyy HH:mm' }}–{{ appointment.endsAt | date:'HH:mm' }}</p>
+              @if (appointment.status === 'SCHEDULED') {
+                <button class="button button-outline" type="button" (click)="cancelAppointment()" [disabled]="saving">{{ saving ? 'Cancelando...' : 'Cancelar agendamento' }}</button>
+              }
+            </section>
+          }
           <div class="panel-footnote"><span>✦</span> A busca considera o expediente e a duração do serviço.</div>
         </article>
 

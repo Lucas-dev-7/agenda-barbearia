@@ -68,7 +68,7 @@ O arquivo `.env.example` serve como referência; o Spring não carrega esse arqu
 
 ## Front-end Angular
 
-O projeto Angular fica em `frontend/`. Ele consulta a API para listar e cadastrar barbeiros e serviços, configurar o expediente semanal e buscar horários disponíveis. O proxy local encaminha `/api` e `/actuator` para o back-end em `localhost:8080`.
+O projeto Angular fica em `frontend/`. Ele consulta a API para listar e cadastrar barbeiros e serviços, configurar o expediente semanal, buscar horários disponíveis e criar ou cancelar agendamentos. Ao selecionar um horário, a tela solicita nome e telefone do cliente; se outra pessoa ocupar o horário antes da confirmação, a interface informa o conflito e atualiza a disponibilidade. O proxy local encaminha `/api` e `/actuator` para o back-end em `localhost:8080`.
 
 Requisitos: Node.js 20.19+, 22.12+ ou 24+. Em dois terminais, inicie primeiro o back-end e depois rode:
 

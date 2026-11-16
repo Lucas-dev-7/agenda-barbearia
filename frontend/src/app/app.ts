@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from './api.service';
-import { Barber, Availability, ServiceOffering } from './api.models';
+import { Appointment, Barber, Availability, ServiceOffering } from './api.models';
 
 @Component({
   imports: [CommonModule, FormsModule],
@@ -14,6 +14,7 @@ export class App implements OnInit {
   barbers: Barber[] = [];
   services: ServiceOffering[] = [];
   availability: Availability | null = null;
+  appointment: Appointment | null = null;
   apiOnline = false;
   loadingAvailability = false;
   saving = false;
@@ -22,6 +23,9 @@ export class App implements OnInit {
   selectedBarberId = '';
   selectedServiceId = '';
   selectedDate = this.today();
+  selectedSlot = '';
+  customerName = '';
+  customerPhone = '';
   readonly minimumDate = this.today();
   barberName = '';
   serviceName = '';
@@ -116,6 +120,7 @@ export class App implements OnInit {
   }
 
   loadAvailability(): void {
+    this.selectedSlot = '';
     if (!this.selectedBarberId || !this.selectedServiceId || !this.selectedDate) {
       this.availability = null;
       return;
@@ -127,6 +132,65 @@ export class App implements OnInit {
         this.availability = null;
         this.loadingAvailability = false;
         this.showError(e, 'Não foi possível buscar os horários. Confira o expediente do barbeiro.');
+      },
+    });
+  }
+
+  selectSlot(slot: string): void {
+    this.selectedSlot = this.selectedSlot === slot ? '' : slot;
+    this.clearNotice();
+  }
+
+  bookSelectedSlot(): void {
+    if (!this.selectedBarberId || !this.selectedServiceId || !this.selectedSlot) return;
+    const customerName = this.customerName.trim();
+    const customerPhone = this.customerPhone.trim();
+    if (!customerName || !customerPhone) return;
+
+    this.saving = true;
+    this.clearNotice();
+    this.api.createAppointment({
+      barberId: this.selectedBarberId,
+      serviceId: this.selectedServiceId,
+      customerName,
+      customerPhone,
+      startsAt: `${this.selectedDate}T${this.selectedSlot.slice(0, 5)}:00`,
+    }).subscribe({
+      next: (created) => {
+        this.appointment = created;
+        this.selectedSlot = '';
+        this.customerName = '';
+        this.customerPhone = '';
+        this.message = 'Agendamento confirmado. Guarde o resumo abaixo.';
+        this.saving = false;
+        this.loadAvailability();
+      },
+      error: (e) => {
+        this.showError(e, e.status === 409
+          ? 'Esse horário acabou de ser ocupado. Escolha outro horário disponível.'
+          : 'Não foi possível confirmar o agendamento. Confira os dados e tente novamente.');
+        this.saving = false;
+        if (e.status === 409) this.loadAvailability();
+      },
+    });
+  }
+
+  cancelAppointment(): void {
+    if (!this.appointment || this.appointment.status !== 'SCHEDULED') return;
+    this.saving = true;
+    this.clearNotice();
+    this.api.cancelAppointment(this.appointment.id).subscribe({
+      next: (cancelled) => {
+        this.appointment = cancelled;
+        this.message = 'Agendamento cancelado e horário liberado.';
+        this.saving = false;
+        this.loadAvailability();
+      },
+      error: (e) => {
+        this.showError(e, e.status === 409
+          ? 'Este agendamento não pode mais ser cancelado.'
+          : 'Não foi possível cancelar o agendamento. Tente novamente.');
+        this.saving = false;
       },
     });
   }

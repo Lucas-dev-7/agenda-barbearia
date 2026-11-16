@@ -19,3 +19,23 @@ export interface Availability {
   durationMinutes: number;
   availableSlots: string[];
 }
+
+export interface CreateAppointmentRequest {
+  barberId: string;
+  serviceId: string;
+  customerName: string;
+  customerPhone: string;
+  startsAt: string;
+}
+
+export interface Appointment {
+  id: string;
+  barberId: string;
+  serviceId: string;
+  customerName: string;
+  customerPhone: string;
+  startsAt: string;
+  endsAt: string;
+  status: 'SCHEDULED' | 'CANCELLED';
+  createdAt: string;
+}
