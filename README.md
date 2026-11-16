@@ -48,11 +48,11 @@ Os módulos `appointment`, `schedule` e `notification` estão reservados para as
 - `GET /api/barbers/{barberId}/working-hours` — lista os intervalos semanais cadastrados (dia da semana ISO: 1 = segunda, 7 = domingo).
 - `POST /api/barbers/{barberId}/working-hours` — cadastra um intervalo. Exemplo: `{"dayOfWeek":1,"opensAt":"09:00:00","closesAt":"18:00:00"}`. Intervalos sobrepostos no mesmo dia são rejeitados.
 - `GET /api/barbers/{barberId}/availability?date=2026-11-10&serviceId={serviceId}` — retorna inícios possíveis a cada 15 minutos, considerando a duração do serviço e o expediente do barbeiro.
-- `POST /api/appointments`
-- `GET /api/appointments/{appointmentId}`
-- `PATCH /api/appointments/{appointmentId}/cancel`
+- `POST /api/appointments` — cria um agendamento. Exemplo: `{"barberId":"...","serviceId":"...","customerName":"Ana Souza","customerPhone":"11999999999","startsAt":"2026-11-17T10:00:00"}`. O início deve ser futuro, alinhado a intervalos de 15 minutos e caber no expediente.
+- `GET /api/appointments/{appointmentId}` — consulta os dados e o status do agendamento.
+- `PATCH /api/appointments/{appointmentId}/cancel` — cancela um agendamento ainda marcado.
 
-Os cadastros retornam `201 Created` e validam os campos obrigatórios. A disponibilidade considera o expediente semanal e a duração do serviço. A verificação de conflitos com agendamentos será adicionada na etapa de agendamentos.
+Os cadastros e a criação de agendamento retornam `201 Created` e validam os campos obrigatórios. A criação confirma barbeiro e serviço ativos, expediente e ausência de sobreposição com outro agendamento ativo. Agendamentos cancelados liberam o horário.
 
 ## Conectar ao MySQL local
 
@@ -84,7 +84,7 @@ Abra `http://localhost:4200`. O front-end depende da API e do MySQL estarem disp
 
 1. ~~Implementar barbeiros e catálogo de serviços.~~
 2. ~~Implementar expediente e consulta de disponibilidade.~~
-3. Criar agendamento com validação de conflito e cancelamento.
+3. ~~Criar agendamento com validação de conflito e cancelamento.~~
 4. Adicionar testes automatizados e documentação OpenAPI.
 5. Acrescentar RabbitMQ para confirmação e lembrete simulados.
 6. Adicionar autenticação e deploy depois que o fluxo principal estiver estável.
