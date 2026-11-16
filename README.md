@@ -17,8 +17,8 @@ API para organizar os horários de uma barbearia. O primeiro objetivo é permiti
 src/main/java/br/com/agendasemfuro/
 ├── barber/        # barbeiros: controller, DTOs, entity, repository e service
 ├── catalog/       # catálogo: controller, DTOs, entity, repository e service
-├── schedule/      # expediente semanal e consulta de disponibilidade
-├── appointment/   # criação e ciclo de vida dos agendamentos
+├── schedule/      # expediente semanal
+├── appointment/   # disponibilidade, criação e ciclo de vida dos agendamentos
 ├── notification/  # módulo reservado para RabbitMQ
 └── shared/        # componentes comuns, como tratamento de erros
 
@@ -37,7 +37,7 @@ Nos módulos implementados, a organização interna segue estas responsabilidade
 - `repository/`: interfaces Spring Data para acesso a dados.
 - `service/`: casos de uso e limites transacionais.
 
-Os módulos `appointment`, `schedule` e `notification` estão reservados para as próximas etapas e podem adotar a mesma organização quando forem implementados.
+Os módulos `appointment` e `schedule` já implementam o fluxo de expediente, disponibilidade e agendamento. `notification` está reservado para uma etapa futura e pode adotar a mesma organização quando for implementado.
 
 ## API do MVP
 
@@ -47,7 +47,7 @@ Os módulos `appointment`, `schedule` e `notification` estão reservados para as
 - `POST /api/services` — cadastra um serviço. Exemplo: `{"name":"Corte","durationMinutes":30,"price":45.00}`.
 - `GET /api/barbers/{barberId}/working-hours` — lista os intervalos semanais cadastrados (dia da semana ISO: 1 = segunda, 7 = domingo).
 - `POST /api/barbers/{barberId}/working-hours` — cadastra um intervalo. Exemplo: `{"dayOfWeek":1,"opensAt":"09:00:00","closesAt":"18:00:00"}`. Intervalos sobrepostos no mesmo dia são rejeitados.
-- `GET /api/barbers/{barberId}/availability?date=2026-11-10&serviceId={serviceId}` — retorna inícios possíveis a cada 15 minutos, considerando a duração do serviço e o expediente do barbeiro.
+- `GET /api/barbers/{barberId}/availability?date=2026-11-10&serviceId={serviceId}` — retorna inícios possíveis a cada 15 minutos, considerando a duração do serviço, o expediente e os agendamentos ativos. Horários passados não são listados.
 - `POST /api/appointments` — cria um agendamento. Exemplo: `{"barberId":"...","serviceId":"...","customerName":"Ana Souza","customerPhone":"11999999999","startsAt":"2026-11-17T10:00:00"}`. O início deve ser futuro, alinhado a intervalos de 15 minutos e caber no expediente.
 - `GET /api/appointments/{appointmentId}` — consulta os dados e o status do agendamento.
 - `PATCH /api/appointments/{appointmentId}/cancel` — cancela um agendamento ainda marcado.
@@ -80,11 +80,27 @@ npm start
 
 Abra `http://localhost:4200`. O front-end depende da API e do MySQL estarem disponíveis.
 
+## Testes
+
+O back-end usa H2 em memória no perfil de teste, sem precisar de um MySQL local. A suíte de integração sobe o contexto Spring e percorre cadastro, expediente, disponibilidade, reserva, conflito e cancelamento. Nesse perfil, o Hibernate cria o esquema e o Flyway fica desativado; a migração Flyway específica do MySQL ainda precisa ser validada contra MySQL.
+
+```bash
+mvn test
+```
+
+No front-end, rode os testes e o build de produção com:
+
+```bash
+cd frontend
+npm test -- --watch=false
+npm run build
+```
+
 ## Próximas etapas
 
 1. ~~Implementar barbeiros e catálogo de serviços.~~
 2. ~~Implementar expediente e consulta de disponibilidade.~~
 3. ~~Criar agendamento com validação de conflito e cancelamento.~~
-4. Adicionar testes automatizados e documentação OpenAPI.
+4. Documentar a API com OpenAPI e ampliar os testes das regras de expediente e da migração MySQL.
 5. Acrescentar RabbitMQ para confirmação e lembrete simulados.
 6. Adicionar autenticação e deploy depois que o fluxo principal estiver estável.

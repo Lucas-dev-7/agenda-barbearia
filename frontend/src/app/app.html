@@ -72,7 +72,7 @@
             } @else if (availability?.availableSlots?.length) {
               <div class="slot-list">@for (slot of availability?.availableSlots; track slot) { <span class="slot-chip">{{ slot.slice(0, 5) }}</span> }</div>
             } @else {
-              <div class="empty-state compact"><span class="empty-icon">◷</span><strong>Nenhum horário listado</strong><span>Cadastre o expediente do barbeiro para este dia da semana. Agendamentos existentes ainda não são descontados.</span><a href="#expediente">Configurar expediente <b>→</b></a></div>
+              <div class="empty-state compact"><span class="empty-icon">◷</span><strong>Nenhum horário disponível</strong><span>Confira o expediente do barbeiro. Horários anteriores e já reservados são ocultados.</span><a href="#expediente">Configurar expediente <b>→</b></a></div>
             }
           </div>
           <div class="panel-footnote"><span>✦</span> A busca considera o expediente e a duração do serviço.</div>

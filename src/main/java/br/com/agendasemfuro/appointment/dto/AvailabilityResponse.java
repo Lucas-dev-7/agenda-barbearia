@@ -1,4 +1,4 @@
-package br.com.agendasemfuro.schedule.dto;
+package br.com.agendasemfuro.appointment.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
