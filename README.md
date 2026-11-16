@@ -54,17 +54,19 @@ Os módulos `appointment` e `schedule` já implementam o fluxo de expediente, di
 
 Os cadastros e a criação de agendamento retornam `201 Created` e validam os campos obrigatórios. A criação confirma barbeiro e serviço ativos, expediente e ausência de sobreposição com outro agendamento ativo. Agendamentos cancelados liberam o horário.
 
-## Conectar ao MySQL local
+## MySQL local com Docker
 
-O projeto usa o MySQL instalado na máquina, em `localhost:3306`. Crie o banco antes de iniciar a aplicação:
+O `compose.yaml` inicia o MySQL 8.4 com banco, usuário de aplicação, volume persistente e verificação de saúde. Na raiz do projeto, copie o arquivo de exemplo e inicie o banco:
 
-```sql
-CREATE DATABASE agenda_barbearia CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+```powershell
+Copy-Item .env.example .env
+docker compose up -d mysql
+docker compose ps
 ```
 
-No IntelliJ, abra **Run > Edit Configurations** e defina as variáveis de ambiente `DB_USERNAME` e `DB_PASSWORD` com o usuário e a senha do seu MySQL. `DB_URL` já assume `jdbc:mysql://localhost:3306/agenda_barbearia?serverTimezone=America/Sao_Paulo`; ajuste se o servidor usar outra porta ou endereço. O Flyway cria as tabelas na primeira inicialização.
+Espere o serviço aparecer como `healthy`. Depois, no IntelliJ, abra **Run > Edit Configurations** e configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` com os valores do `.env`. O Spring Boot aplica a migração Flyway na inicialização; confira no log do back-end se a migração `V1` foi aplicada e acesse `http://localhost:8080/actuator/health`.
 
-O arquivo `.env.example` serve como referência; o Spring não carrega esse arquivo automaticamente. Não coloque sua senha real no Git. O endpoint `/actuator/health` fica disponível para conferir a saúde da aplicação.
+Os valores de `.env.example` são credenciais apenas para desenvolvimento local. Troque-os se necessário e nunca use esses valores em produção. O Spring não carrega `.env` automaticamente; ele serve para o Docker Compose e como referência para as variáveis da configuração de execução do IntelliJ.
 
 ## Front-end Angular
 
