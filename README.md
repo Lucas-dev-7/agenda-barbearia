@@ -54,6 +54,10 @@ Os módulos `appointment` e `schedule` já implementam o fluxo de expediente, di
 
 Os cadastros e a criação de agendamento retornam `201 Created` e validam os campos obrigatórios. A criação confirma barbeiro e serviço ativos, expediente e ausência de sobreposição com outro agendamento ativo. Agendamentos cancelados liberam o horário.
 
+### Documentação interativa
+
+Com o back-end iniciado, abra `http://localhost:8080/swagger-ui.html` para explorar os endpoints e enviar requisições pela interface Swagger. A especificação OpenAPI em JSON fica em `http://localhost:8080/v3/api-docs`.
+
 ## MySQL local com Docker
 
 O `compose.yaml` inicia o MySQL 8.4 na porta `3307` do Windows (porta `3306` dentro do container), com banco, usuário de aplicação, volume persistente e verificação de saúde. Usar `3307` no host evita conflito com um MySQL local que já esteja usando `3306`. Na raiz do projeto, copie o arquivo de exemplo e inicie o banco:
@@ -103,6 +107,10 @@ npm run build
 1. ~~Implementar barbeiros e catálogo de serviços.~~
 2. ~~Implementar expediente e consulta de disponibilidade.~~
 3. ~~Criar agendamento com validação de conflito e cancelamento.~~
-4. Documentar a API com OpenAPI e ampliar os testes das regras de expediente e da migração MySQL.
+4. ~~Documentar a API com OpenAPI.~~
 5. Acrescentar RabbitMQ para confirmação e lembrete simulados.
-6. Adicionar autenticação e deploy depois que o fluxo principal estiver estável.
+6. Planejar autenticação e preparar o deploy depois que o fluxo principal estiver estável.
+
+## Identidade visual
+
+O painel usa verde floresta (`#17231f`), marfim (`#f7f7f3`) e dourado quente (`#d1a86a`) para manter o clima artesanal da barbearia com boa leitura. A foto editorial em `frontend/public/assets/barbershop-editorial.png` aparece no cartão de destaque com uma camada escura para preservar o contraste do texto. O recurso fica na pasta pública do Angular e é incluído no build de produção.
