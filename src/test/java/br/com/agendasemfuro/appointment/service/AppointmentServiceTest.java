@@ -10,6 +10,7 @@ import br.com.agendasemfuro.catalog.entity.ServiceOffering;
 import br.com.agendasemfuro.catalog.repository.ServiceOfferingRepository;
 import br.com.agendasemfuro.schedule.entity.WorkingHours;
 import br.com.agendasemfuro.schedule.repository.WorkingHoursRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,7 @@ class AppointmentServiceTest {
     @Mock private ServiceOfferingRepository serviceOfferingRepository;
     @Mock private WorkingHoursRepository workingHoursRepository;
     @Mock private AppointmentRepository appointmentRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private Barber barber;
     @Mock private ServiceOffering serviceOffering;
     @Mock private Appointment appointment;
@@ -53,7 +55,7 @@ class AppointmentServiceTest {
     @BeforeEach
     void setUp() {
         service = new AppointmentService(
-                barberRepository, serviceOfferingRepository, workingHoursRepository, appointmentRepository
+                barberRepository, serviceOfferingRepository, workingHoursRepository, appointmentRepository, eventPublisher
         );
         barberId = UUID.randomUUID();
         serviceId = UUID.randomUUID();

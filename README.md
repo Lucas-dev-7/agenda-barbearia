@@ -19,7 +19,7 @@ src/main/java/br/com/agendasemfuro/
 ├── catalog/       # catálogo: controller, DTOs, entity, repository e service
 ├── schedule/      # expediente semanal
 ├── appointment/   # disponibilidade, criação e ciclo de vida dos agendamentos
-├── notification/  # módulo reservado para RabbitMQ
+├── notification/  # evento, publicação e consumo das confirmações simuladas
 └── shared/        # componentes comuns, como tratamento de erros
 
 src/main/resources/
@@ -37,7 +37,7 @@ Nos módulos implementados, a organização interna segue estas responsabilidade
 - `repository/`: interfaces Spring Data para acesso a dados.
 - `service/`: casos de uso e limites transacionais.
 
-Os módulos `appointment` e `schedule` já implementam o fluxo de expediente, disponibilidade e agendamento. `notification` está reservado para uma etapa futura e pode adotar a mesma organização quando for implementado.
+Os módulos `appointment` e `schedule` implementam o fluxo de expediente, disponibilidade e agendamento. `notification` publica a confirmação simulada depois que a transação do agendamento termina e consome a mensagem com RabbitMQ.
 
 ## API do MVP
 
@@ -58,17 +58,19 @@ Os cadastros e a criação de agendamento retornam `201 Created` e validam os ca
 
 Com o back-end iniciado, abra `http://localhost:8080/swagger-ui.html` para explorar os endpoints e enviar requisições pela interface Swagger. A especificação OpenAPI em JSON fica em `http://localhost:8080/v3/api-docs`.
 
-## MySQL local com Docker
+## MySQL e RabbitMQ locais com Docker
 
-O `compose.yaml` inicia o MySQL 8.4 na porta `3307` do Windows (porta `3306` dentro do container), com banco, usuário de aplicação, volume persistente e verificação de saúde. Usar `3307` no host evita conflito com um MySQL local que já esteja usando `3306`. Na raiz do projeto, copie o arquivo de exemplo e inicie o banco:
+O `compose.yaml` inicia o MySQL 8.4 na porta `3307` do Windows (porta `3306` dentro do container) e o RabbitMQ 4 na porta AMQP `5672`, com a interface de gerenciamento em `15672`. Os dois serviços têm volumes persistentes e verificações de saúde. Na raiz do projeto, copie o arquivo de exemplo e inicie-os:
 
 ```powershell
 Copy-Item .env.example .env
-docker compose up -d mysql
+docker compose up -d mysql rabbitmq
 docker compose ps
 ```
 
-Espere o serviço aparecer como `healthy`. Depois, no IntelliJ, abra **Run > Edit Configurations** e configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` com os valores do `.env`. O Spring Boot aplica a migração Flyway na inicialização; confira no log do back-end se a migração `V1` foi aplicada e acesse `http://localhost:8080/actuator/health`.
+Espere os dois serviços aparecerem como `healthy`. A interface do RabbitMQ fica em `http://localhost:15672`; use `RABBITMQ_USERNAME` e `RABBITMQ_PASSWORD` do `.env`. No IntelliJ, abra **Run > Edit Configurations** e configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. Os valores `RABBITMQ_*` padrão de `application.yml` combinam com o `.env.example`; se você os personalizou, configure os mesmos valores na execução do Spring. O Spring Boot aplica a migração Flyway na inicialização; confira se a migração `V1` foi aplicada e acesse `http://localhost:8080/actuator/health`.
+
+Ao criar um agendamento, a API publica um evento JSON na exchange `appointments.events`, chave `appointment.created`, e o consumidor registra uma confirmação simulada no log. O envio acontece após o commit do banco para evitar mensagens de reservas que não foram gravadas. Se o broker estiver indisponível, o agendamento continua salvo e o back-end registra um aviso; esta primeira versão ainda não tem outbox nem retentativa. Desative a integração local definindo `RABBITMQ_ENABLED=false`.
 
 Os valores de `.env.example` são credenciais apenas para desenvolvimento local. Troque-os se necessário e nunca use esses valores em produção. O Spring não carrega `.env` automaticamente; ele serve para o Docker Compose e como referência para as variáveis da configuração de execução do IntelliJ.
 
@@ -108,8 +110,9 @@ npm run build
 2. ~~Implementar expediente e consulta de disponibilidade.~~
 3. ~~Criar agendamento com validação de conflito e cancelamento.~~
 4. ~~Documentar a API com OpenAPI.~~
-5. Acrescentar RabbitMQ para confirmação e lembrete simulados.
-6. Planejar autenticação e preparar o deploy depois que o fluxo principal estiver estável.
+5. ~~Publicar uma confirmação simulada com RabbitMQ.~~
+6. Acrescentar lembretes agendados e resiliência de entrega, como outbox e retentativas.
+7. Planejar autenticação e preparar o deploy depois que o fluxo principal estiver estável.
 
 ## Identidade visual
 

@@ -8,8 +8,10 @@ import br.com.agendasemfuro.barber.entity.Barber;
 import br.com.agendasemfuro.barber.repository.BarberRepository;
 import br.com.agendasemfuro.catalog.entity.ServiceOffering;
 import br.com.agendasemfuro.catalog.repository.ServiceOfferingRepository;
+import br.com.agendasemfuro.notification.AppointmentCreatedEvent;
 import br.com.agendasemfuro.schedule.entity.WorkingHours;
 import br.com.agendasemfuro.schedule.repository.WorkingHoursRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,17 +33,20 @@ public class AppointmentService {
     private final ServiceOfferingRepository serviceOfferingRepository;
     private final WorkingHoursRepository workingHoursRepository;
     private final AppointmentRepository appointmentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AppointmentService(
             BarberRepository barberRepository,
             ServiceOfferingRepository serviceOfferingRepository,
             WorkingHoursRepository workingHoursRepository,
-            AppointmentRepository appointmentRepository
+            AppointmentRepository appointmentRepository,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.barberRepository = barberRepository;
         this.serviceOfferingRepository = serviceOfferingRepository;
         this.workingHoursRepository = workingHoursRepository;
         this.appointmentRepository = appointmentRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -82,10 +87,15 @@ public class AppointmentService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Appointment overlaps an existing booking");
         }
 
-        return appointmentRepository.save(new Appointment(
+        Appointment appointment = appointmentRepository.save(new Appointment(
                 barber.getId(), service.getId(), request.customerName().trim(), request.customerPhone().trim(),
                 startsAt, endsAt
         ));
+        eventPublisher.publishEvent(new AppointmentCreatedEvent(
+                appointment.getId(), appointment.getCustomerName(), appointment.getCustomerPhone(),
+                barber.getName(), service.getName(), appointment.getStartsAt(), appointment.getEndsAt()
+        ));
+        return appointment;
     }
 
     @Transactional(readOnly = true)

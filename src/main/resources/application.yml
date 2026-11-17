@@ -1,6 +1,11 @@
 spring:
   application:
     name: agenda-barbearia
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:agenda_app}
+    password: ${RABBITMQ_PASSWORD:agenda_dev_local}
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/agenda_barbearia?serverTimezone=America/Sao_Paulo}
     username: ${DB_USERNAME:root}
@@ -15,7 +20,18 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+app:
+  messaging:
+    rabbitmq:
+      enabled: ${RABBITMQ_ENABLED:true}
+      exchange: ${RABBITMQ_APPOINTMENT_CREATED_EXCHANGE:appointments.events}
+      routing-key: ${RABBITMQ_APPOINTMENT_CREATED_ROUTING_KEY:appointment.created}
+      queue: ${RABBITMQ_APPOINTMENT_CREATED_QUEUE:appointments.created}
+
 management:
+  health:
+    rabbit:
+      enabled: ${RABBITMQ_ENABLED:true}
   endpoints:
     web:
       exposure:
