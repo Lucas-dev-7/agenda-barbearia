@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from './api.service';
 import { Appointment, Barber, Availability, ServiceOffering } from './api.models';
@@ -45,30 +45,54 @@ export class App implements OnInit {
     { value: 7, label: 'Domingo' },
   ];
 
-  constructor(private readonly api: ApiService) {}
+  constructor(
+    private readonly api: ApiService,
+    private readonly changeDetector: ChangeDetectorRef,
+  ) {}
 
   ngOnInit(): void {
     this.refresh();
   }
 
   refresh(): void {
-    this.api.health().subscribe({ next: () => (this.apiOnline = true), error: () => (this.apiOnline = false) });
+    this.api.health().subscribe({
+      next: (health) => {
+        this.apiOnline = health.status === 'UP';
+        this.changeDetector.markForCheck();
+      },
+      error: () => {
+        this.apiOnline = false;
+        this.changeDetector.markForCheck();
+      },
+    });
     this.api.barbers().subscribe({
       next: (items) => {
+        this.apiOnline = true;
         this.barbers = items;
         if (!this.selectedBarberId && items.length) this.selectedBarberId = items[0].id;
         if (!this.hoursBarberId && items.length) this.hoursBarberId = items[0].id;
         this.loadAvailability();
+        this.changeDetector.markForCheck();
       },
-      error: (e) => this.showError(e, 'Não foi possível carregar os barbeiros.'),
+      error: (e) => {
+        if (e.status === 0) this.apiOnline = false;
+        this.showError(e, 'Não foi possível carregar os barbeiros.');
+        this.changeDetector.markForCheck();
+      },
     });
     this.api.services().subscribe({
       next: (items) => {
+        this.apiOnline = true;
         this.services = items;
         if (!this.selectedServiceId && items.length) this.selectedServiceId = items[0].id;
         this.loadAvailability();
+        this.changeDetector.markForCheck();
       },
-      error: (e) => this.showError(e, 'Não foi possível carregar os serviços.'),
+      error: (e) => {
+        if (e.status === 0) this.apiOnline = false;
+        this.showError(e, 'Não foi possível carregar os serviços.');
+        this.changeDetector.markForCheck();
+      },
     });
   }
 
@@ -84,8 +108,13 @@ export class App implements OnInit {
         this.message = 'Barbeiro cadastrado com sucesso.';
         this.saving = false;
         this.refresh();
+        this.changeDetector.markForCheck();
       },
-      error: (e) => { this.showError(e, 'Não foi possível cadastrar o barbeiro.'); this.saving = false; },
+      error: (e) => {
+        this.showError(e, 'Não foi possível cadastrar o barbeiro.');
+        this.saving = false;
+        this.changeDetector.markForCheck();
+      },
     });
   }
 
@@ -100,8 +129,13 @@ export class App implements OnInit {
         this.message = 'Serviço cadastrado com sucesso.';
         this.saving = false;
         this.refresh();
+        this.changeDetector.markForCheck();
       },
-      error: (e) => { this.showError(e, 'Não foi possível cadastrar o serviço.'); this.saving = false; },
+      error: (e) => {
+        this.showError(e, 'Não foi possível cadastrar o serviço.');
+        this.saving = false;
+        this.changeDetector.markForCheck();
+      },
     });
   }
 
@@ -114,8 +148,13 @@ export class App implements OnInit {
         this.message = 'Expediente cadastrado. Consulte a disponibilidade ao lado.';
         this.saving = false;
         this.loadAvailability();
+        this.changeDetector.markForCheck();
       },
-      error: (e) => { this.showError(e, 'Não foi possível cadastrar o expediente.'); this.saving = false; },
+      error: (e) => {
+        this.showError(e, 'Não foi possível cadastrar o expediente.');
+        this.saving = false;
+        this.changeDetector.markForCheck();
+      },
     });
   }
 
@@ -127,11 +166,16 @@ export class App implements OnInit {
     }
     this.loadingAvailability = true;
     this.api.availability(this.selectedBarberId, this.selectedServiceId, this.selectedDate).subscribe({
-      next: (result) => { this.availability = result; this.loadingAvailability = false; },
+      next: (result) => {
+        this.availability = result;
+        this.loadingAvailability = false;
+        this.changeDetector.markForCheck();
+      },
       error: (e) => {
         this.availability = null;
         this.loadingAvailability = false;
         this.showError(e, 'Não foi possível buscar os horários. Confira o expediente do barbeiro.');
+        this.changeDetector.markForCheck();
       },
     });
   }
@@ -164,6 +208,7 @@ export class App implements OnInit {
         this.message = 'Agendamento confirmado. Guarde o resumo abaixo.';
         this.saving = false;
         this.loadAvailability();
+        this.changeDetector.markForCheck();
       },
       error: (e) => {
         this.showError(e, e.status === 409
@@ -171,6 +216,7 @@ export class App implements OnInit {
           : 'Não foi possível confirmar o agendamento. Confira os dados e tente novamente.');
         this.saving = false;
         if (e.status === 409) this.loadAvailability();
+        this.changeDetector.markForCheck();
       },
     });
   }
@@ -185,12 +231,14 @@ export class App implements OnInit {
         this.message = 'Agendamento cancelado e horário liberado.';
         this.saving = false;
         this.loadAvailability();
+        this.changeDetector.markForCheck();
       },
       error: (e) => {
         this.showError(e, e.status === 409
           ? 'Este agendamento não pode mais ser cancelado.'
           : 'Não foi possível cancelar o agendamento. Tente novamente.');
         this.saving = false;
+        this.changeDetector.markForCheck();
       },
     });
   }
