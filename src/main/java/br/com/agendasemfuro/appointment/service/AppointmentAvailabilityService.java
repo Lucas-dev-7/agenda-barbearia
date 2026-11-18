@@ -48,10 +48,10 @@ public class AppointmentAvailabilityService {
     public AvailabilityResponse getAvailability(UUID barberId, UUID serviceId, LocalDate date) {
         Barber barber = barberRepository.findById(barberId)
                 .filter(Barber::isActive)
-                .orElseThrow(() -> ApplicationException.notFound("Active barber not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Barbeiro ativo não encontrado."));
         ServiceOffering service = serviceOfferingRepository.findById(serviceId)
                 .filter(ServiceOffering::isActive)
-                .orElseThrow(() -> ApplicationException.notFound("Active service not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Serviço ativo não encontrado."));
 
         LocalDateTime dayStart = date.atStartOfDay();
         List<Appointment> appointments = appointmentRepository

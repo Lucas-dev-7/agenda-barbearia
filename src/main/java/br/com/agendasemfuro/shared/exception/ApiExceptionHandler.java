@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -44,9 +45,23 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, "One or more fields are invalid.");
-        problem.setTitle("Validation failed");
+        problem.setTitle("Falha de validação");
         problem.setProperty("code", "VALIDATION_ERROR");
         problem.setProperty("errors", errors);
+        return handleExceptionInternal(exception, problem, headers, status, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException exception,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request
+    ) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status,
+                "O corpo da requisição está ausente ou contém dados inválidos.");
+        problem.setTitle("Requisição inválida");
+        problem.setProperty("code", "INVALID_BODY");
         return handleExceptionInternal(exception, problem, headers, status, request);
     }
 }

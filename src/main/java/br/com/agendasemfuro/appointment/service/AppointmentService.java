@@ -52,22 +52,22 @@ public class AppointmentService {
     public Appointment create(CreateAppointmentRequest request) {
         Barber barber = barberRepository.findByIdForUpdate(request.barberId())
                 .filter(Barber::isActive)
-                .orElseThrow(() -> ApplicationException.notFound("Active barber not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Barbeiro ativo não encontrado."));
         ServiceOffering service = serviceOfferingRepository.findById(request.serviceId())
                 .filter(ServiceOffering::isActive)
-                .orElseThrow(() -> ApplicationException.notFound("Active service not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Serviço ativo não encontrado."));
 
         LocalDateTime startsAt = request.startsAt();
         if (!startsAt.isAfter(LocalDateTime.now(BUSINESS_ZONE))) {
-            throw ApplicationException.invalidRequest("startsAt must be in the future");
+            throw ApplicationException.invalidRequest("O agendamento deve começar no futuro.");
         }
         if (startsAt.getSecond() != 0 || startsAt.getNano() != 0) {
-            throw ApplicationException.invalidRequest("startsAt must be on a 15-minute boundary");
+            throw ApplicationException.invalidRequest("O horário deve começar em um intervalo de 15 minutos.");
         }
 
         LocalDateTime endsAt = startsAt.plusMinutes(service.getDurationMinutes());
         if (!endsAt.toLocalDate().equals(startsAt.toLocalDate())) {
-            throw ApplicationException.conflict("Appointments cannot cross midnight");
+            throw ApplicationException.conflict("O agendamento não pode ultrapassar a meia-noite.");
         }
         List<WorkingHours> intervals = workingHoursRepository.findAllByBarberIdAndDayOfWeekOrderByOpensAtAsc(
                 barber.getId(), (short) startsAt.getDayOfWeek().getValue()
@@ -76,14 +76,14 @@ public class AppointmentService {
                 isValidSlot(interval, startsAt.toLocalTime(), endsAt.toLocalTime())
         );
         if (!fitsWorkingHours) {
-            throw ApplicationException.conflict("Appointment is outside the barber's working hours");
+            throw ApplicationException.conflict("O horário está fora do expediente do barbeiro.");
         }
 
         boolean overlaps = appointmentRepository.existsByBarberIdAndStatusAndStartsAtLessThanAndEndsAtGreaterThan(
                 barber.getId(), AppointmentStatus.SCHEDULED, endsAt, startsAt
         );
         if (overlaps) {
-            throw ApplicationException.conflict("Appointment overlaps an existing booking");
+            throw ApplicationException.conflict("Esse horário já está ocupado.");
         }
 
         Appointment appointment = appointmentRepository.save(new Appointment(
@@ -100,15 +100,15 @@ public class AppointmentService {
     @Transactional(readOnly = true)
     public Appointment get(UUID appointmentId) {
         return appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> ApplicationException.notFound("Appointment not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Agendamento não encontrado."));
     }
 
     @Transactional
     public Appointment cancel(UUID appointmentId) {
         Appointment appointment = appointmentRepository.findByIdForUpdate(appointmentId)
-                .orElseThrow(() -> ApplicationException.notFound("Appointment not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Agendamento não encontrado."));
         if (appointment.getStatus() != AppointmentStatus.SCHEDULED) {
-            throw ApplicationException.conflict("Only scheduled appointments can be cancelled");
+            throw ApplicationException.conflict("Somente agendamentos ativos podem ser cancelados.");
         }
         appointment.cancel();
         return appointment;

@@ -9,8 +9,10 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 public record CreateServiceRequest(
-        @NotBlank @Size(max = 120) String name,
-        @Positive int durationMinutes,
-        @NotNull @DecimalMin("0.00") BigDecimal price
+        @NotBlank(message = "Informe o nome do serviço.")
+        @Size(max = 120, message = "O nome deve ter no máximo 120 caracteres.") String name,
+        @Positive(message = "A duração deve ser maior que zero.") int durationMinutes,
+        @NotNull(message = "Informe o preço do serviço.")
+        @DecimalMin(value = "0.00", message = "O preço não pode ser negativo.") BigDecimal price
 ) {
 }

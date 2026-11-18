@@ -37,7 +37,7 @@ public class ScheduleService {
         requireBarber(barberId);
 
         if (!request.closesAt().isAfter(request.opensAt())) {
-            throw ApplicationException.invalidRequest("closesAt must be after opensAt");
+            throw ApplicationException.invalidRequest("O horário de fechamento deve ser posterior ao de abertura.");
         }
 
         boolean overlaps = workingHoursRepository
@@ -48,7 +48,7 @@ public class ScheduleService {
                         request.opensAt()
                 );
         if (overlaps) {
-            throw ApplicationException.conflict("Working hours overlap an existing interval");
+            throw ApplicationException.conflict("Esse intervalo se sobrepõe a um expediente já cadastrado.");
         }
 
         return workingHoursRepository.save(new WorkingHours(
@@ -61,6 +61,6 @@ public class ScheduleService {
 
     private Barber requireBarber(UUID barberId) {
         return barberRepository.findById(barberId)
-                .orElseThrow(() -> ApplicationException.notFound("Barber not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Barbeiro não encontrado."));
     }
 }
