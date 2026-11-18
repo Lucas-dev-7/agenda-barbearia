@@ -60,7 +60,7 @@ Com o back-end iniciado, abra `http://localhost:8080/swagger-ui.html` para explo
 
 ## MySQL e RabbitMQ locais com Docker
 
-O `compose.yaml` inicia o MySQL 8.4 na porta `3307` do Windows (porta `3306` dentro do container) e o RabbitMQ 4 na porta AMQP `5672`, com a interface de gerenciamento em `15672`. As portas ficam disponíveis somente no próprio computador e o Compose exige as credenciais configuradas no `.env`. Os dois serviços têm volumes persistentes e verificações de saúde. Na raiz do projeto, copie o arquivo de exemplo e inicie-os:
+O `compose.yaml` inicia o MySQL 8.4 na porta `3307` do Windows (porta `3306` dentro do container) e o RabbitMQ 4 na porta AMQP `5672`, com a interface de gerenciamento em `15672`. As portas ficam disponíveis somente no próprio computador e o Compose exige as credenciais configuradas no `.env`. Os dois serviços têm volumes persistentes e verificações de saúde. Na raiz do projeto, copie o arquivo de exemplo, troque a senha de administrador por uma senha local própria e inicie os serviços:
 
 ```powershell
 Copy-Item .env.example .env
@@ -68,7 +68,7 @@ docker compose up -d mysql rabbitmq
 docker compose ps
 ```
 
-Espere os dois serviços aparecerem como `healthy`. A interface do RabbitMQ fica em `http://localhost:15672`; use `RABBITMQ_USERNAME` e `RABBITMQ_PASSWORD` do `.env`. O Spring Boot não carrega `.env` automaticamente. No IntelliJ, abra **Run > Edit Configurations** e configure `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` e `SESSION_COOKIE_SECURE=false` para desenvolvimento local por HTTP. Use os valores locais do `.env.example` como referência e substitua o valor de `ADMIN_PASSWORD` por uma senha de desenvolvimento própria com pelo menos 16 caracteres. O Spring Boot aplica a migração Flyway na inicialização; confira se a migração `V1` foi aplicada e acesse `http://localhost:8080/actuator/health`.
+Espere os dois serviços aparecerem como `healthy`. A interface do RabbitMQ fica em `http://localhost:15672`; use `RABBITMQ_USERNAME` e `RABBITMQ_PASSWORD` do `.env`. O Spring Boot carrega esse arquivo automaticamente quando é iniciado na raiz do projeto; variáveis definidas no sistema têm prioridade, o que permite configurar o deploy sem arquivo `.env`. Para iniciar o back-end, abra um terminal na raiz e rode `mvn spring-boot:run`. A migração Flyway é aplicada na inicialização; confira o estado em `http://localhost:8080/actuator/health`.
 
 O painel usa sessão no servidor com Spring Security. Todas as rotas da API exigem autenticação, exceto `GET /api/auth/csrf`, `POST /api/auth/login` e o health check. O usuário administrador é configurado pelas variáveis `ADMIN_USERNAME` e `ADMIN_PASSWORD`; a senha é armazenada em memória apenas como hash BCrypt e precisa ter pelo menos 16 caracteres. A sessão expira após 30 minutos de inatividade, usa cookie `HttpOnly` e `SameSite=Strict`, e as operações de escrita exigem token CSRF. O login do painel acontece em `http://localhost:4200`.
 
@@ -80,7 +80,7 @@ Os valores de `.env.example` são credenciais apenas para desenvolvimento local.
 
 O projeto Angular fica em `frontend/`. Ele autentica o administrador e consulta a API para listar e cadastrar barbeiros e serviços, configurar o expediente semanal, buscar horários disponíveis e criar ou cancelar agendamentos. Ao selecionar um horário, a tela solicita nome e telefone do cliente; se outra pessoa ocupar o horário antes da confirmação, a interface informa o conflito e atualiza a disponibilidade. O proxy local encaminha `/api` e `/actuator` para o back-end em `localhost:8080`.
 
-Requisitos: Node.js 20.19+, 22.12+ ou 24+. Em dois terminais, inicie primeiro o back-end e depois rode:
+Requisitos para executar o projeto localmente: Java 21, Maven, Docker com Compose e Node.js 20.19+, 22.12+ ou 24+. Depois de iniciar o MySQL e o RabbitMQ, rode `mvn spring-boot:run` na raiz do projeto. Em outro terminal, inicie o front-end:
 
 ```bash
 cd frontend
