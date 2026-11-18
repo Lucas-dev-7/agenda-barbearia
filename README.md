@@ -60,7 +60,7 @@ Com o back-end iniciado, abra `http://localhost:8080/swagger-ui.html` para explo
 
 ## MySQL e RabbitMQ locais com Docker
 
-O `compose.yaml` inicia o MySQL 8.4 na porta `3307` do Windows (porta `3306` dentro do container) e o RabbitMQ 4 na porta AMQP `5672`, com a interface de gerenciamento em `15672`. Os dois serviços têm volumes persistentes e verificações de saúde. Na raiz do projeto, copie o arquivo de exemplo e inicie-os:
+O `compose.yaml` inicia o MySQL 8.4 na porta `3307` do Windows (porta `3306` dentro do container) e o RabbitMQ 4 na porta AMQP `5672`, com a interface de gerenciamento em `15672`. As portas ficam disponíveis somente no próprio computador e o Compose exige as credenciais configuradas no `.env`. Os dois serviços têm volumes persistentes e verificações de saúde. Na raiz do projeto, copie o arquivo de exemplo e inicie-os:
 
 ```powershell
 Copy-Item .env.example .env

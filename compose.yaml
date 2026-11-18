@@ -4,14 +4,14 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: agenda_barbearia
-      MYSQL_USER: ${DB_USERNAME:-agenda_app}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-agenda_dev_local}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-agenda_root_dev}
+      MYSQL_USER: ${DB_USERNAME:?Defina DB_USERNAME no arquivo .env}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD no arquivo .env}
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
     ports:
-      - "3307:3306"
+      - "127.0.0.1:3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -27,11 +27,11 @@ services:
     image: rabbitmq:4-management
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-agenda_app}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-agenda_dev_local}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?Defina RABBITMQ_USERNAME no arquivo .env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Defina RABBITMQ_PASSWORD no arquivo .env}
     ports:
-      - "${RABBITMQ_PORT:-5672}:5672"
-      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
