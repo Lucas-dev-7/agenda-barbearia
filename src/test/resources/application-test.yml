@@ -19,3 +19,8 @@ app:
   messaging:
     rabbitmq:
       enabled: false
+
+management:
+  health:
+    rabbit:
+      enabled: false
