@@ -31,6 +31,10 @@ const cancelledAppointment: Appointment = { ...scheduledAppointment, status: 'CA
 
 function createApiMock() {
   return {
+    csrf: vi.fn(() => of(undefined)),
+    currentUser: vi.fn(() => of({ username: 'barber-admin' })),
+    login: vi.fn(() => of(undefined)),
+    logout: vi.fn(() => of(undefined)),
     health: vi.fn(() => of({ status: 'UP' })),
     barbers: vi.fn(() => of([barber])),
     createBarber: vi.fn(() => of(barber)),

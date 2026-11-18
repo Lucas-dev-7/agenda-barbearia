@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Appointment, Availability, Barber, CreateAppointmentRequest, ServiceOffering } from './api.models';
@@ -8,6 +8,25 @@ export class ApiService {
   private readonly apiUrl = '/api';
 
   constructor(private readonly http: HttpClient) {}
+
+  csrf(): Observable<void> {
+    return this.http.get<void>(`${this.apiUrl}/auth/csrf`);
+  }
+
+  currentUser(): Observable<{ username: string }> {
+    return this.http.get<{ username: string }>(`${this.apiUrl}/auth/me`);
+  }
+
+  login(username: string, password: string): Observable<void> {
+    const body = new HttpParams().set('username', username).set('password', password);
+    return this.http.post<void>(`${this.apiUrl}/auth/login`, body, {
+      headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+    });
+  }
+
+  logout(): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/auth/logout`, {});
+  }
 
   health(): Observable<{ status: string }> {
     return this.http.get<{ status: string }>('/actuator/health');

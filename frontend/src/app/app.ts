@@ -7,10 +7,17 @@ import { Appointment, Barber, Availability, ServiceOffering } from './api.models
 @Component({
   imports: [CommonModule, FormsModule],
   selector: 'app-root',
-  styleUrl: './app.css',
+  styleUrls: ['./app.css', './login.css'],
   templateUrl: './app.html',
 })
 export class App implements OnInit {
+  authenticated = false;
+  authLoading = true;
+  loginSaving = false;
+  loginUsername = '';
+  loginPassword = '';
+  loginError = '';
+  currentUsername = '';
   barbers: Barber[] = [];
   services: ServiceOffering[] = [];
   availability: Availability | null = null;
@@ -51,7 +58,96 @@ export class App implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.refresh();
+    this.initializeSession();
+  }
+
+  initializeSession(): void {
+    this.api.csrf().subscribe({
+      next: () => this.api.currentUser().subscribe({
+        next: (user) => {
+          this.authenticated = true;
+          this.currentUsername = user.username;
+          this.authLoading = false;
+          this.refresh();
+          this.changeDetector.markForCheck();
+        },
+        error: (error) => {
+          this.authLoading = false;
+          if (error.status !== 401) this.loginError = 'Não foi possível verificar a sessão.';
+          this.changeDetector.markForCheck();
+        },
+      }),
+      error: () => {
+        this.authLoading = false;
+        this.loginError = 'Não foi possível conectar à API. Inicie o back-end Spring Boot na porta 8080.';
+        this.changeDetector.markForCheck();
+      },
+    });
+  }
+
+  login(): void {
+    if (!this.loginUsername.trim() || !this.loginPassword) return;
+    this.loginSaving = true;
+    this.loginError = '';
+    this.api.login(this.loginUsername.trim(), this.loginPassword).subscribe({
+      next: () => this.api.csrf().subscribe({
+        next: () => this.api.currentUser().subscribe({
+          next: (user) => {
+            this.authenticated = true;
+            this.currentUsername = user.username;
+            this.loginPassword = '';
+            this.loginSaving = false;
+            this.refresh();
+            this.changeDetector.markForCheck();
+          },
+          error: () => {
+            this.loginSaving = false;
+            this.loginError = 'Não foi possível validar a sessão. Tente entrar novamente.';
+            this.changeDetector.markForCheck();
+          },
+        }),
+        error: () => {
+          this.loginSaving = false;
+          this.loginError = 'Não foi possível iniciar uma sessão segura. Tente novamente.';
+          this.changeDetector.markForCheck();
+        },
+      }),
+      error: (error) => {
+        this.loginSaving = false;
+        this.loginError = error.status === 401
+          ? 'Usuário ou senha incorretos.'
+          : 'Não foi possível entrar. Verifique a conexão e tente novamente.';
+        this.changeDetector.markForCheck();
+      },
+    });
+  }
+
+  logout(): void {
+    this.api.logout().subscribe({
+      next: () => this.api.csrf().subscribe({
+        next: () => {
+          this.authenticated = false;
+          this.currentUsername = '';
+          this.loginPassword = '';
+          this.clearNotice();
+          this.changeDetector.markForCheck();
+        },
+        error: () => {
+          this.authenticated = false;
+          this.currentUsername = '';
+          this.loginError = 'Sessão encerrada. Atualize a página para entrar novamente.';
+          this.changeDetector.markForCheck();
+        },
+      }),
+      error: (error) => {
+        if (error.status === 401) {
+          this.authenticated = false;
+          this.currentUsername = '';
+        }
+        this.loginError = 'Não foi possível encerrar a sessão. Atualize a página e tente novamente.';
+        this.changeDetector.markForCheck();
+      },
+    });
   }
 
   refresh(): void {
@@ -252,6 +348,10 @@ export class App implements OnInit {
   private clearNotice(): void { this.message = ''; this.error = ''; }
 
   private showError(error: { status?: number }, fallback: string): void {
+    if (error.status === 401) {
+      this.authenticated = false;
+      this.loginError = 'Sua sessão expirou. Entre novamente.';
+    }
     this.message = '';
     this.error = error.status === 0
       ? 'Sem conexão com a API. Inicie o back-end Spring Boot na porta 8080.'

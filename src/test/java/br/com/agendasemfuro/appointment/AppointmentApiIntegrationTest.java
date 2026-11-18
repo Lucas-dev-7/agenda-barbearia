@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,12 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@WithMockUser(roles = "ADMIN")
 class AppointmentApiIntegrationTest {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Sao_Paulo");
 
@@ -70,6 +73,7 @@ class AppointmentApiIntegrationTest {
                 """.formatted(barberId, serviceId, startsAt);
 
         MvcResult createResult = mockMvc.perform(post("/api/appointments")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isCreated())
@@ -79,7 +83,7 @@ class AppointmentApiIntegrationTest {
         String appointmentId = objectMapper.readTree(createResult.getResponse().getContentAsString())
                 .get("id").asText();
 
-        mockMvc.perform(post("/api/appointments").contentType(MediaType.APPLICATION_JSON).content(request))
+        mockMvc.perform(post("/api/appointments").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(request))
                 .andExpect(status().isConflict());
 
         MvcResult availabilityAfterBooking = mockMvc.perform(get("/api/barbers/{barberId}/availability", barberId)
@@ -96,11 +100,11 @@ class AppointmentApiIntegrationTest {
                 .andExpect(jsonPath("$.customerName").value("Ana Souza"))
                 .andExpect(jsonPath("$.status").value("SCHEDULED"));
 
-        mockMvc.perform(patch("/api/appointments/{appointmentId}/cancel", appointmentId))
+        mockMvc.perform(patch("/api/appointments/{appointmentId}/cancel", appointmentId).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
 
-        mockMvc.perform(patch("/api/appointments/{appointmentId}/cancel", appointmentId))
+        mockMvc.perform(patch("/api/appointments/{appointmentId}/cancel", appointmentId).with(csrf()))
                 .andExpect(status().isConflict());
 
         MvcResult availabilityAfterCancellation = mockMvc.perform(get("/api/barbers/{barberId}/availability", barberId)
@@ -113,12 +117,13 @@ class AppointmentApiIntegrationTest {
                 .get("availableSlots").toString();
         assertThat(slotsAfterCancellation).contains("10:00:00");
 
-        mockMvc.perform(post("/api/appointments").contentType(MediaType.APPLICATION_JSON).content(request))
+        mockMvc.perform(post("/api/appointments").with(csrf()).contentType(MediaType.APPLICATION_JSON).content(request))
                 .andExpect(status().isCreated());
     }
 
     private String createBarber() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/barbers")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"name":"Barbeiro de integração"}
@@ -130,6 +135,7 @@ class AppointmentApiIntegrationTest {
 
     private String createService() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/services")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"name":"Corte de integração","durationMinutes":30,"price":45.00}
@@ -141,6 +147,7 @@ class AppointmentApiIntegrationTest {
 
     private void createWorkingHours(String barberId, int dayOfWeek) throws Exception {
         mockMvc.perform(post("/api/barbers/{barberId}/working-hours", barberId)
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"dayOfWeek":%d,"opensAt":"09:00:00","closesAt":"18:00:00"}

@@ -12,6 +12,10 @@ spring:
     enabled: false
 
 app:
+  security:
+    admin:
+      username: test-admin
+      password: test-admin-password-for-tests
   messaging:
     rabbitmq:
       enabled: false
