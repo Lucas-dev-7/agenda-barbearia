@@ -10,13 +10,13 @@ import br.com.agendasemfuro.catalog.entity.ServiceOffering;
 import br.com.agendasemfuro.catalog.repository.ServiceOfferingRepository;
 import br.com.agendasemfuro.schedule.entity.WorkingHours;
 import br.com.agendasemfuro.schedule.repository.WorkingHoursRepository;
+import br.com.agendasemfuro.shared.exception.ApplicationException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -112,8 +112,8 @@ class AppointmentServiceTest {
         )).thenReturn(true);
 
         assertThatThrownBy(() -> service.create(validRequest()))
-                .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
-                        assertThat(exception.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.CONFLICT));
+                .isInstanceOfSatisfying(ApplicationException.class, exception ->
+                        assertThat(exception.getCode()).isEqualTo(ApplicationException.Code.CONFLICT));
 
         verify(appointmentRepository, never()).save(any(Appointment.class));
     }
@@ -125,8 +125,8 @@ class AppointmentServiceTest {
         stubWorkingHours(LocalTime.of(9, 0), LocalTime.of(18, 0));
 
         assertThatThrownBy(() -> service.create(validRequest()))
-                .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
-                        assertThat(exception.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.CONFLICT));
+                .isInstanceOfSatisfying(ApplicationException.class, exception ->
+                        assertThat(exception.getCode()).isEqualTo(ApplicationException.Code.CONFLICT));
 
         verify(appointmentRepository, never()).save(any(Appointment.class));
     }
@@ -147,8 +147,8 @@ class AppointmentServiceTest {
         when(appointment.getStatus()).thenReturn(AppointmentStatus.CANCELLED);
 
         assertThatThrownBy(() -> service.cancel(appointmentId))
-                .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
-                        assertThat(exception.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.CONFLICT));
+                .isInstanceOfSatisfying(ApplicationException.class, exception ->
+                        assertThat(exception.getCode()).isEqualTo(ApplicationException.Code.CONFLICT));
 
         verify(appointment, never()).cancel();
     }

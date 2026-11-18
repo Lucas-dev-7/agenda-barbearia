@@ -10,10 +10,9 @@ import br.com.agendasemfuro.catalog.entity.ServiceOffering;
 import br.com.agendasemfuro.catalog.repository.ServiceOfferingRepository;
 import br.com.agendasemfuro.schedule.entity.WorkingHours;
 import br.com.agendasemfuro.schedule.repository.WorkingHoursRepository;
-import org.springframework.http.HttpStatus;
+import br.com.agendasemfuro.shared.exception.ApplicationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -49,10 +48,10 @@ public class AppointmentAvailabilityService {
     public AvailabilityResponse getAvailability(UUID barberId, UUID serviceId, LocalDate date) {
         Barber barber = barberRepository.findById(barberId)
                 .filter(Barber::isActive)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Active barber not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Active barber not found"));
         ServiceOffering service = serviceOfferingRepository.findById(serviceId)
                 .filter(ServiceOffering::isActive)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Active service not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Active service not found"));
 
         LocalDateTime dayStart = date.atStartOfDay();
         List<Appointment> appointments = appointmentRepository

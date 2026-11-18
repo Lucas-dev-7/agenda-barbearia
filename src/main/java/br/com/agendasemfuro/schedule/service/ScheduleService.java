@@ -5,10 +5,9 @@ import br.com.agendasemfuro.barber.repository.BarberRepository;
 import br.com.agendasemfuro.schedule.dto.CreateWorkingHoursRequest;
 import br.com.agendasemfuro.schedule.entity.WorkingHours;
 import br.com.agendasemfuro.schedule.repository.WorkingHoursRepository;
-import org.springframework.http.HttpStatus;
+import br.com.agendasemfuro.shared.exception.ApplicationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -38,7 +37,7 @@ public class ScheduleService {
         requireBarber(barberId);
 
         if (!request.closesAt().isAfter(request.opensAt())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "closesAt must be after opensAt");
+            throw ApplicationException.invalidRequest("closesAt must be after opensAt");
         }
 
         boolean overlaps = workingHoursRepository
@@ -49,7 +48,7 @@ public class ScheduleService {
                         request.opensAt()
                 );
         if (overlaps) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Working hours overlap an existing interval");
+            throw ApplicationException.conflict("Working hours overlap an existing interval");
         }
 
         return workingHoursRepository.save(new WorkingHours(
@@ -62,6 +61,6 @@ public class ScheduleService {
 
     private Barber requireBarber(UUID barberId) {
         return barberRepository.findById(barberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Barber not found"));
+                .orElseThrow(() -> ApplicationException.notFound("Barber not found"));
     }
 }
