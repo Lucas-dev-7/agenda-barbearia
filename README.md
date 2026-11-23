@@ -76,6 +76,21 @@ Ao criar um agendamento, a API publica um evento JSON na exchange `appointments.
 
 Os valores de `.env.example` são credenciais apenas para desenvolvimento local. Troque-os e nunca use esses valores em produção. Em produção, configure `SESSION_COOKIE_SECURE=true`, sirva o painel e a API por HTTPS e forneça credenciais próprias para banco, RabbitMQ e administrador. A API não tem uma área pública de autoagendamento nesta etapa: o painel inteiro exige login. A criação pública de reservas e os tokens privados de consulta/cancelamento são uma etapa futura.
 
+## Deploy em uma VM
+
+O `compose.deploy.yaml` prepara a aplicação para uma VM Linux com Docker Compose: Caddy recebe o tráfego público e emite HTTPS, enquanto Angular, API, MySQL e RabbitMQ ficam na rede interna do Compose. Somente as portas 80 e 443 são publicadas; não exponha as portas do banco, do broker ou da API.
+
+Antes de subir a aplicação, aponte o registro DNS `A` do domínio para o IP público da VM e libere as portas TCP 80 e 443 no firewall da nuvem. Restrinja SSH ao seu IP. Na VM, copie `deploy.env.example` para `.env.production`, configure domínio e senhas próprias, proteja o arquivo (`chmod 600 .env.production`) e execute:
+
+```bash
+docker compose --env-file .env.production -f compose.deploy.yaml config --quiet
+docker compose --env-file .env.production -f compose.deploy.yaml up -d --build
+```
+
+O Caddy só consegue provisionar o certificado quando o domínio já resolve para a VM e as portas 80/443 estão acessíveis. Os dados do MySQL e do RabbitMQ ficam em volumes Docker locais; configure cópias de segurança fora da VM antes de usar dados reais. O Compose de deploy não publica a interface de administração do RabbitMQ.
+
+Para a cota Always Free da Oracle, a documentação atual descreve até 2 OCPUs e 12 GB de memória para Ampere A1; a criação ainda depende de capacidade na região da conta. A VM precisa ser ARM64, suportada pelas imagens multi-arquitetura usadas aqui. Consulte os limites diretamente na [documentação Always Free da Oracle](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm) antes de provisionar.
+
 ## Front-end Angular
 
 O projeto Angular fica em `frontend/`. Ele autentica o administrador e consulta a API para listar e cadastrar barbeiros e serviços, configurar o expediente semanal, buscar horários disponíveis e criar ou cancelar agendamentos. Ao selecionar um horário, a tela solicita nome e telefone do cliente; se outra pessoa ocupar o horário antes da confirmação, a interface informa o conflito e atualiza a disponibilidade. O proxy local encaminha `/api` e `/actuator` para o back-end em `localhost:8080`.

@@ -1,0 +1,7 @@
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	@api path /api/* /actuator/* /v3/api-docs* /swagger-ui* /swagger-ui.html
+	reverse_proxy @api backend:8080
+	reverse_proxy frontend:80
+}
