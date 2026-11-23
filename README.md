@@ -92,7 +92,7 @@ Abra `http://localhost:4200`. O front-end depende da API e do MySQL estarem disp
 
 ## Testes
 
-O back-end usa H2 em memória no perfil de teste, sem precisar de um MySQL local. A suíte de integração sobe o contexto Spring e percorre cadastro, expediente, disponibilidade, reserva, conflito e cancelamento. Nesse perfil, o Hibernate cria o esquema e o Flyway fica desativado; a migração Flyway específica do MySQL ainda precisa ser validada contra MySQL.
+O back-end usa H2 em memória no perfil de teste, sem precisar de um MySQL local. A suíte de integração sobe o contexto Spring e percorre cadastro, expediente, disponibilidade, reserva, conflito e cancelamento. Nesse perfil, o Hibernate cria o esquema e o Flyway fica desativado. A migração Flyway do MySQL foi aplicada com sucesso na inicialização local do back-end; o fluxo de expediente, reserva, conflito e cancelamento também foi conferido manualmente com MySQL e RabbitMQ em execução pelo Compose.
 
 ```bash
 mvn test
@@ -114,7 +114,8 @@ npm run build
 4. ~~Documentar a API com OpenAPI.~~
 5. ~~Publicar uma confirmação simulada com RabbitMQ.~~
 6. Acrescentar lembretes agendados e resiliência de entrega, como outbox e retentativas.
-7. Planejar autenticação e preparar o deploy depois que o fluxo principal estiver estável.
+7. ~~Implementar autenticação do painel com sessão, proteção CSRF e configuração por ambiente.~~
+8. Preparar e validar o deploy em um ambiente gratuito, com HTTPS e credenciais próprias.
 
 ## Identidade visual
 
