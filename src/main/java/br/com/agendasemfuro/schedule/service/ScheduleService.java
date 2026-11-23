@@ -34,7 +34,9 @@ public class ScheduleService {
 
     @Transactional
     public WorkingHours addWorkingHours(UUID barberId, CreateWorkingHoursRequest request) {
-        requireBarber(barberId);
+        Barber barber = barberRepository.findByIdForUpdate(barberId)
+                .filter(Barber::isActive)
+                .orElseThrow(() -> ApplicationException.notFound("Barbeiro ativo não encontrado."));
 
         if (!request.closesAt().isAfter(request.opensAt())) {
             throw ApplicationException.invalidRequest("O horário de fechamento deve ser posterior ao de abertura.");
@@ -42,7 +44,7 @@ public class ScheduleService {
 
         boolean overlaps = workingHoursRepository
                 .existsByBarberIdAndDayOfWeekAndOpensAtLessThanAndClosesAtGreaterThan(
-                        barberId,
+                        barber.getId(),
                         request.dayOfWeek(),
                         request.closesAt(),
                         request.opensAt()
@@ -52,7 +54,7 @@ public class ScheduleService {
         }
 
         return workingHoursRepository.save(new WorkingHours(
-                barberId,
+                barber.getId(),
                 request.dayOfWeek(),
                 request.opensAt(),
                 request.closesAt()

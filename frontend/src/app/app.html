@@ -128,7 +128,7 @@
             <div class="register-title"><span class="register-symbol service-symbol">◈</span><div><strong>Novo serviço</strong><small>Configure preço e duração</small></div></div>
             <form (ngSubmit)="createService()"><label for="serviceName">NOME DO SERVIÇO</label><input id="serviceName" name="serviceName" [(ngModel)]="serviceName" placeholder="Ex.: Corte tradicional" maxlength="120" required><div class="form-row"><label>DURAÇÃO (MIN)<input type="number" name="serviceDuration" [(ngModel)]="serviceDuration" min="1" required></label><label>PREÇO (R$)<input type="number" name="servicePrice" [(ngModel)]="servicePrice" min="0" step="0.01" required></label></div><button class="button button-outline full-width" type="submit" [disabled]="saving || !serviceName.trim()">Cadastrar serviço <span>→</span></button></form>
           </div>
-          <div class="catalog-summary"><span>CATÁLOGO ATUAL</span><strong>{{ barbers.length }} barbeiros <i>·</i> {{ services.length }} serviços</strong></div>
+          <div class="catalog-summary"><span>CATÁLOGO ATUAL</span><strong>{{ barbers.length }} {{ barbers.length === 1 ? 'barbeiro' : 'barbeiros' }} <i>·</i> {{ services.length }} {{ services.length === 1 ? 'serviço' : 'serviços' }}</strong></div>
         </article>
       </section>
 

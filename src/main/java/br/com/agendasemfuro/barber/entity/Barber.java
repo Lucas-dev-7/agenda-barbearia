@@ -1,5 +1,6 @@
 package br.com.agendasemfuro.barber.entity;
 
+import br.com.agendasemfuro.shared.time.BusinessTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -35,7 +36,7 @@ public class Barber {
 
     public Barber(String name) {
         this.name = name;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = BusinessTime.now();
     }
 
     public UUID getId() { return id; }

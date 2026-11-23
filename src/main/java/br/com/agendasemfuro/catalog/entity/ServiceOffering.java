@@ -1,5 +1,6 @@
 package br.com.agendasemfuro.catalog.entity;
 
+import br.com.agendasemfuro.shared.time.BusinessTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -44,7 +45,7 @@ public class ServiceOffering {
         this.name = name;
         this.durationMinutes = durationMinutes;
         this.price = price;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = BusinessTime.now();
     }
 
     public UUID getId() { return id; }

@@ -11,13 +11,13 @@ import br.com.agendasemfuro.catalog.repository.ServiceOfferingRepository;
 import br.com.agendasemfuro.schedule.entity.WorkingHours;
 import br.com.agendasemfuro.schedule.repository.WorkingHoursRepository;
 import br.com.agendasemfuro.shared.exception.ApplicationException;
+import br.com.agendasemfuro.shared.time.BusinessTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +25,6 @@ import java.util.UUID;
 @Service
 public class AppointmentAvailabilityService {
     private static final int SLOT_INTERVAL_MINUTES = 15;
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final BarberRepository barberRepository;
     private final ServiceOfferingRepository serviceOfferingRepository;
@@ -58,7 +57,7 @@ public class AppointmentAvailabilityService {
                 .findAllByBarberIdAndStatusAndStartsAtLessThanAndEndsAtGreaterThan(
                         barber.getId(), AppointmentStatus.SCHEDULED, dayStart.plusDays(1), dayStart
                 );
-        LocalDateTime now = LocalDateTime.now(BUSINESS_ZONE);
+        LocalDateTime now = BusinessTime.now();
         List<LocalTime> availableSlots = new ArrayList<>();
         List<WorkingHours> intervals = workingHoursRepository.findAllByBarberIdAndDayOfWeekOrderByOpensAtAsc(
                 barber.getId(), (short) date.getDayOfWeek().getValue()

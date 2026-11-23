@@ -12,6 +12,7 @@ import br.com.agendasemfuro.notification.AppointmentCreatedEvent;
 import br.com.agendasemfuro.schedule.entity.WorkingHours;
 import br.com.agendasemfuro.schedule.repository.WorkingHoursRepository;
 import br.com.agendasemfuro.shared.exception.ApplicationException;
+import br.com.agendasemfuro.shared.time.BusinessTime;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class AppointmentService {
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Sao_Paulo");
     private static final int SLOT_INTERVAL_MINUTES = 15;
 
     private final BarberRepository barberRepository;
@@ -58,7 +57,7 @@ public class AppointmentService {
                 .orElseThrow(() -> ApplicationException.notFound("Serviço ativo não encontrado."));
 
         LocalDateTime startsAt = request.startsAt();
-        if (!startsAt.isAfter(LocalDateTime.now(BUSINESS_ZONE))) {
+        if (!startsAt.isAfter(BusinessTime.now())) {
             throw ApplicationException.invalidRequest("O agendamento deve começar no futuro.");
         }
         if (startsAt.getSecond() != 0 || startsAt.getNano() != 0) {

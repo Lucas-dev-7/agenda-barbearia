@@ -1,5 +1,6 @@
 package br.com.agendasemfuro.appointment.entity;
 
+import br.com.agendasemfuro.shared.time.BusinessTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -61,7 +62,7 @@ public class Appointment {
         this.startsAt = startsAt;
         this.endsAt = endsAt;
         this.status = AppointmentStatus.SCHEDULED;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = BusinessTime.now();
     }
 
     public UUID getId() { return id; }
